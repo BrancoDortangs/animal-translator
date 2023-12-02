@@ -1,0 +1,85 @@
+<div class="card">
+  <h1>Dieren vertaler</h1>
+  <form [formGroup]="translationForm" (ngSubmit)="onSubmit()">
+    <div class="grid">
+      <div class="col-12 p-fluid">
+        <div class="field">
+          <label for="text">Te vertalen tekst</label>
+          <textarea
+            formControlName="text"
+            id="text"
+            rows="5"
+            cols="100"
+            pInputTextarea
+            [autoResize]="true"
+            aria-describedby="text-help"
+          ></textarea>
+          <small
+            id="text-help"
+            class="p-error"
+            *ngIf="
+              translationForm.controls.text.invalid &&
+              (translationForm.controls.text.dirty ||
+                translationForm.controls.text.touched)
+            "
+            >Voer een tekst in.
+          </small>
+        </div>
+      </div>
+      <div class="col-12 md:col-4 p-fluid">
+        <div class="field">
+          <label for="fromLanguage">Van</label>
+          <p-dropdown
+            id="fromLanguage"
+            [options]="fromLanguageOptions"
+            formControlName="fromLanguage"
+            [showClear]="true"
+            placeholder="Taal herkennen"
+            (onChange)="onFromLanguageChange($event)"
+            aria-describedby="fromLanguage-help"
+          ></p-dropdown>
+          <small
+            id="fromLanguage-help"
+            class="p-error"
+            *ngIf="
+              translationForm.controls.fromLanguage.invalid &&
+              (translationForm.controls.fromLanguage.dirty ||
+                translationForm.controls.fromLanguage.touched)
+            "
+            >Kies een waarde.
+          </small>
+        </div>
+      </div>
+      <div class="col-12 md:col-4 p-fluid">
+        <div class="field">
+          <label for="toLanguage">Naar</label>
+          <p-dropdown
+            id="toLanguage"
+            [options]="toLanguageOptions"
+            formControlName="toLanguage"
+            [showClear]="true"
+            aria-describedby="toLanguage-help"
+          ></p-dropdown>
+          <small
+            id="toLanguage-help"
+            class="p-error"
+            *ngIf="
+              translationForm.controls.toLanguage.invalid &&
+              (translationForm.controls.toLanguage.dirty ||
+                translationForm.controls.toLanguage.touched)
+            "
+            >Kies een waarde.
+          </small>
+        </div>
+      </div>
+      <div class="col-12 md:col-4 p-fluid flex align-items-end">
+        <div class="field">
+          <p-button
+            label="Vertaal"
+            [disabled]="!translationForm.valid"
+          ></p-button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
