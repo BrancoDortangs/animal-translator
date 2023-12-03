@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
 import {
+  AbstractControl,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { SelectItem } from 'primeng/api';
@@ -21,6 +24,29 @@ import { CommonModule } from '@angular/common';
 import { TranslationService } from './translation.service';
 import { LinesComponent } from '../lines/lines.component';
 import { Lines } from '../lines/lines.type';
+
+export function textMatchesSelectedLanguage(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const textControl = control.get('text');
+    const fromLanguageControl = control.get('fromLanguage');
+
+    if (textControl) {
+      if (textControl?.value && fromLanguageControl?.value) {
+        if (
+          fromLanguageControl.value !== 'autodetect' &&
+          !TranslationService.matchesFromLanguage(
+            textControl.value,
+            fromLanguageControl.value
+          )
+        ) {
+          textControl.setErrors({ textDoesNotMatchSelectedLanguage: true });
+        }
+      }
+    }
+
+    return null;
+  };
+}
 
 @Component({
   selector: 'app-translation-form',
@@ -50,23 +76,26 @@ export class TranslationFormComponent {
     this.createOption('parakeet'),
   ];
 
-  protected translationForm = new FormGroup({
-    text: new FormControl<string>('', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    fromLanguage: new FormControl<FromLanguageOption>('autodetect', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    toLanguage: new FormControl<Language>('labrador', {
-      nonNullable: true,
-      validators: [Validators.required],
-    }),
-    isDrunk: new FormControl<boolean>(true, {
-      nonNullable: true,
-    }),
-  });
+  protected translationForm = new FormGroup(
+    {
+      text: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      fromLanguage: new FormControl<FromLanguageOption>('autodetect', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      toLanguage: new FormControl<Language>('labrador', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      isDrunk: new FormControl<boolean>(true, {
+        nonNullable: true,
+      }),
+    },
+    { validators: textMatchesSelectedLanguage() }
+  );
 
   protected toLanguageOptions: SelectItem<LanguageOption>[] = [
     this.createOption('labrador'),

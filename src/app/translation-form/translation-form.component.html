@@ -17,23 +17,24 @@
           ></textarea>
           @if(translationForm.controls.text.invalid &&
           (translationForm.controls.text.dirty ||
-          translationForm.controls.text.touched) ){
+          translationForm.controls.text.touched) ) {
+          @if(translationForm.controls.text.errors?.['required']){
           <p>
             <small id="text-help" class="p-error">Voer een tekst in.</small>
           </p>
-          } @else if(showLanguageCouldNotBeDetected){
+          }
+          @else if(translationForm.controls.text.errors?.['textDoesNotMatchSelectedLanguage']){
+          <p>
+            <small id="text-help-from-language" class="p-error">
+              Input komt niet overeen met geselecteerde taal.
+            </small>
+          </p>
+          } } @if((translationForm.controls.text.dirty ||
+          translationForm.controls.text.touched) &&
+          showLanguageCouldNotBeDetected){
           <p>
             <small id="text-help-language-not-detected" class="p-error"
               >Taal kon niet automatisch worden herkend.
-            </small>
-          </p>
-          } @if((translationForm.value.text &&
-          isFromLanguage(translationForm.controls.fromLanguage.value) &&
-          !matchesFromLanguage(translationForm.controls.text.value,
-          translationForm.controls.fromLanguage.value))){
-          <p>
-            <small id="text-help-from-language" class="p-error"
-              >Input komt niet overeen met geselecteerde taal.
             </small>
           </p>
           }
