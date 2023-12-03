@@ -12,32 +12,49 @@
             cols="100"
             pInputTextarea
             [autoResize]="true"
-            aria-describedby="text-help"
+            aria-describedby="text-help text-help-from-language text-help-language-not-detected"
+            (ngModelChange)="onTextChange($event)"
           ></textarea>
-          <small
-            id="text-help"
-            class="p-error"
-            *ngIf="
-              translationForm.controls.text.invalid &&
-              (translationForm.controls.text.dirty ||
-                translationForm.controls.text.touched)
-            "
-            >Voer een tekst in.
-          </small>
+          @if(translationForm.controls.text.invalid &&
+          (translationForm.controls.text.dirty ||
+          translationForm.controls.text.touched) ){
+          <p>
+            <small id="text-help" class="p-error">Voer een tekst in.</small>
+          </p>
+          } @else if(showLanguageCouldNotBeDetected){
+          <p>
+            <small id="text-help-language-not-detected" class="p-error"
+              >Taal kon niet automatisch worden herkend.
+            </small>
+          </p>
+          } @if((translationForm.value.text &&
+          isFromLanguage(translationForm.controls.fromLanguage.value) &&
+          !matchesFromLanguage(translationForm.controls.text.value,
+          translationForm.controls.fromLanguage.value))){
+          <p>
+            <small id="text-help-from-language" class="p-error"
+              >Input komt niet overeen met geselecteerde taal.
+            </small>
+          </p>
+          }
         </div>
       </div>
       <div class="col-12 md:col-4 p-fluid">
         <div class="field">
           <label for="fromLanguage">Van</label>
           <p-dropdown
-            id="fromLanguage"
+            inputId="fromLanguage"
             [options]="fromLanguageOptions"
             formControlName="fromLanguage"
-            [showClear]="true"
-            placeholder="Taal herkennen"
             (onChange)="onFromLanguageChange($event)"
             aria-describedby="fromLanguage-help"
-          ></p-dropdown>
+          >
+            <ng-template pTemplate="selectedItem">
+              {{
+                getLabelForLanguage(translationForm.controls.fromLanguage.value)
+              }}
+            </ng-template></p-dropdown
+          >
           <small
             id="fromLanguage-help"
             class="p-error"
@@ -54,10 +71,11 @@
         <div class="field">
           <label for="toLanguage">Naar</label>
           <p-dropdown
-            id="toLanguage"
+            inputId="toLanguage"
             [options]="toLanguageOptions"
             formControlName="toLanguage"
             [showClear]="true"
+            (onChange)="onToLanguageChange($event)"
             aria-describedby="toLanguage-help"
           ></p-dropdown>
           <small
@@ -72,14 +90,37 @@
           </small>
         </div>
       </div>
-      <div class="col-12 md:col-4 p-fluid flex align-items-end">
+      <div class="col-12 p-fluid">
+        <div class="field">
+          <div class="flex align-items-center gap-1">
+            <p-checkbox
+              formControlName="isDrunk"
+              [binary]="true"
+              inputId="isDrunk"
+            ></p-checkbox>
+            <label for="isDrunk">Ik ben zo dronken!!!</label>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 md:col-3 p-fluid">
         <div class="field">
           <p-button
             label="Vertaal"
             [disabled]="!translationForm.valid"
+            type="'submit'"
           ></p-button>
         </div>
       </div>
     </div>
   </form>
+  @if(outputLines && isToLanguage(translationForm.controls.toLanguage.value)){
+  <div class="grid">
+    <div class="col-12 p-fluid">
+      <app-lines
+        [lines]="outputLines"
+        [language]="translationForm.controls.toLanguage.value"
+      />
+    </div>
+  </div>
+  }
 </div>

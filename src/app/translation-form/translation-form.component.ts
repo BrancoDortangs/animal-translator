@@ -1,91 +1,124 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-
 import { SelectItem } from 'primeng/api';
-import { Language } from './language.type';
+import {
+  FromLanguage,
+  FromLanguageOption,
+  Language,
+  LanguageOption,
+  ToLanguage,
+} from './language.type';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DropdownChangeEvent, DropdownModule } from 'primeng/dropdown';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { CommonModule } from '@angular/common';
 import { TranslationService } from './translation.service';
+import { LinesComponent } from '../lines/lines.component';
+import { Lines } from '../lines/lines.type';
 
 @Component({
   selector: 'app-translation-form',
   standalone: true,
+  templateUrl: './translation-form.component.html',
   imports: [
     ReactiveFormsModule,
     ButtonModule,
+    CheckboxModule,
     DropdownModule,
     InputTextareaModule,
     CommonModule,
+    LinesComponent,
   ],
-  templateUrl: './translation-form.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TranslationFormComponent {
+  protected matchesFromLanguage = TranslationService.matchesFromLanguage;
+
+  private detectedLanguage: FromLanguage | null = null;
+  protected showLanguageCouldNotBeDetected = false;
+
+  protected fromLanguageOptions: SelectItem<LanguageOption>[] = [
+    this.createOption('autodetect'),
+    this.createOption('person'),
+    this.createOption('labrador'),
+    this.createOption('poodle'),
+    this.createOption('parakeet'),
+  ];
+
   protected translationForm = new FormGroup({
     text: new FormControl<string>('', {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    fromLanguage: new FormControl<Language | ''>('', {
+    fromLanguage: new FormControl<FromLanguageOption>('autodetect', {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    toLanguage: new FormControl<Language | ''>('', {
+    toLanguage: new FormControl<Language>('labrador', {
       nonNullable: true,
       validators: [Validators.required],
+    }),
+    isDrunk: new FormControl<boolean>(true, {
+      nonNullable: true,
     }),
   });
 
-  protected fromLanguageOptions: SelectItem<Language>[] = [
-    this.createOptionForLanguage('person'),
-    this.createOptionForLanguage('labrador'),
-    this.createOptionForLanguage('poodle'),
-    this.createOptionForLanguage('parakeet'),
+  protected toLanguageOptions: SelectItem<LanguageOption>[] = [
+    this.createOption('labrador'),
+    this.createOption('poodle'),
+    this.createOption('parakeet'),
+    this.createOption('parrot'),
   ];
 
-  protected toLanguageOptions: SelectItem<Language>[] = [];
+  protected outputLines: Lines = [];
 
-  protected toOptionsPerFromLanguage: Map<Language, SelectItem<Language>[]> =
-    new Map([
+  protected toOptionsPerFromLanguageOption: Map<
+    LanguageOption,
+    SelectItem<LanguageOption>[]
+  > = new Map([
+    [
+      'autodetect',
       [
-        'person',
-        [
-          this.createOptionForLanguage('labrador'),
-          this.createOptionForLanguage('poodle'),
-          this.createOptionForLanguage('parakeet'),
-          this.createOptionForLanguage('parrot'),
-        ],
+        this.createOption('labrador'),
+        this.createOption('poodle'),
+        this.createOption('parakeet'),
+        this.createOption('parrot'),
       ],
+    ],
+    [
+      'person',
       [
-        'labrador',
-        [
-          this.createOptionForLanguage('poodle'),
-          this.createOptionForLanguage('parrot'),
-        ],
+        this.createOption('labrador'),
+        this.createOption('poodle'),
+        this.createOption('parakeet'),
+        this.createOption('parrot'),
       ],
-      [
-        'poodle',
-        [
-          this.createOptionForLanguage('labrador'),
-          this.createOptionForLanguage('parrot'),
-        ],
-      ],
-      ['parakeet', [this.createOptionForLanguage('parrot')]],
-    ]);
+    ],
+    ['labrador', [this.createOption('poodle'), this.createOption('parrot')]],
+    ['poodle', [this.createOption('labrador'), this.createOption('parrot')]],
+    ['parakeet', [this.createOption('parrot')]],
+  ]);
 
-  private createOptionForLanguage(language: Language): SelectItem<Language> {
-    return { label: this.getLabelForLanguage(language), value: language };
+  private createOption(
+    languageOption: LanguageOption
+  ): SelectItem<LanguageOption> {
+    return {
+      label: this.getLabelForLanguage(languageOption),
+      value: languageOption,
+    };
   }
 
-  private getLabelForLanguage(language: Language): string {
-    switch (language) {
+  protected getLabelForLanguage(languageOption: LanguageOption): string {
+    switch (languageOption) {
+      case 'autodetect':
+        return this.detectedLanguage
+          ? `${this.getLabelForLanguage(this.detectedLanguage)} gedetecteerd`
+          : 'Taal herkennen';
       case 'person':
         return 'Mens';
       case 'labrador':
@@ -99,20 +132,68 @@ export class TranslationFormComponent {
     }
   }
 
-  protected onFromLanguageChange(event: DropdownChangeEvent): void {
-    if (event.value) {
-      this.toLanguageOptions =
-        this.toOptionsPerFromLanguage.get(event.value) ?? [];
-    } else {
-      this.toLanguageOptions = [];
+  protected onTextChange(text: string): void {
+    this.outputLines = [];
+    this.detectedLanguage = TranslationService.detectLanguage(text);
+
+    this.showLanguageCouldNotBeDetected = this.detectedLanguage === null;
+
+    this.refreshFromOptions();
+    this.refreshToOptions(this.detectedLanguage ?? 'autodetect');
+  }
+
+  private refreshFromOptions(): void {
+    const index: number = this.fromLanguageOptions.findIndex(
+      (option) => option.value === 'autodetect'
+    );
+
+    if (index !== -1) {
+      this.fromLanguageOptions[index] = this.createOption('autodetect');
     }
   }
 
+  private refreshToOptions(from: LanguageOption): void {
+    if (from) {
+      this.toLanguageOptions =
+        this.toOptionsPerFromLanguageOption.get(from) ?? [];
+    } else {
+      this.toLanguageOptions = [];
+    }
+    if (
+      !this.toLanguageOptions.some(
+        (option) => option.value === this.translationForm.value.toLanguage
+      )
+    ) {
+      this.translationForm.controls.toLanguage.setValue(
+        this.toLanguageOptions[0].value as Language
+      );
+    }
+  }
+
+  protected onFromLanguageChange(event: DropdownChangeEvent): void {
+    this.outputLines = [];
+    this.refreshToOptions(event.value);
+  }
+
+  protected onToLanguageChange(_event: DropdownChangeEvent): void {
+    this.outputLines = [];
+  }
+
   protected onSubmit(): void {
-    TranslationService.translate(
-      this.translationForm.controls.text.value,
-      this.translationForm.controls.fromLanguage.value,
-      this.translationForm.controls.toLanguage.value
-    );
+    if (this.isToLanguage(this.translationForm.controls.toLanguage.value)) {
+      this.outputLines = TranslationService.translate(
+        this.translationForm.controls.text.value,
+        this.translationForm.controls.toLanguage.value,
+        this.translationForm.controls.isDrunk.value
+      );
+    }
+  }
+
+  protected isFromLanguage(language: LanguageOption): language is FromLanguage {
+    return ['person', 'labrador', 'poodle', 'parakeet'].includes(language);
+  }
+
+  protected isToLanguage(language: Language): language is ToLanguage {
+    return ['labrador', 'poodle', 'parakeet', 'parrot'].includes(language);
   }
 }
