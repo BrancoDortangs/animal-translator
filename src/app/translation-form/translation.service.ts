@@ -73,11 +73,11 @@ export class TranslationService {
         return TranslationService.getWords(
           phrase
             .replaceAll(
-              /\b[bcdfghjklmnpqrstvwxyz0-9_]\w+/gi,
+              /\b[bcdfghjklmnpqrstvwxyz0-9_]\w*/gi,
               TranslationService.parakeetStartsWithConsonantReplacement
             )
             .replaceAll(
-              /\b[aeiou]\w+/gi,
+              /\b[aeiou]\w*/gi,
               TranslationService.parakeetStartsWithVowelReplacement
             )
         );
