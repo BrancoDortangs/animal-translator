@@ -4,30 +4,53 @@
     <span class="text-lg">Vertaling</span>
   </div>
   <div class="col-12">
-    @if( language === 'labrador' || language==='poodle' || language
-    ==='parakeet'){
+    @if( language === 'labrador' || language === 'poodle'){
     <p
       class="line my-0"
       [class.font-bold]="language === 'labrador'"
       [class.text-2xl]="language === 'labrador'"
-      [class.font-semibold]="language === 'poodle'"
-    >
-      @for(line of lines; track $index){ @for(word of line; track $index){
-      <span class="{{ getParakeetClass(word) }}">{{ word }}</span>
-      <app-space [show]="!$last" />
-      }
+      [class.font-semibold]="language === 'poodle'">
+      @for(line of lines; track $index){ 
+        @for(word of line; track $index){
+        <span class="{{ getParakeetClass(word) }}">{{ word }}</span>
+        <app-space [show]="!$last" />
+        }
       <app-space [show]="!$last" />
       }
     </p>
-    }@else if (language === 'parrot') { @for(line of lines; track $index){
-    <p class="line" [class.mt-0]="$first" [class.mb-0]="$last">
+    } @else if(language === 'parakeet'){
+      @if(isSmallSize){
+        @for(line of lines; track $index){
+          <p class="line" [class.mt-0]="$first" [class.mb-0]="$last">
+              @for(word of line; track $index){
+              <span class="{{ getParakeetClass(word) }}">{{ word }}</span>
+              <app-space [show]="!$last" />
+              }
+          </p>
+        }
+      } @else {
+        <p class="line my-0">
+          @for(line of lines; track $index){ 
+            @for(word of line; track $index){
+            <span class="{{ getParakeetClass(word) }}">{{ word }}</span>
+            <app-space [show]="!$last" />
+            }
+          <app-space [show]="!$last" />
+          }
+        </p>
+      }
+
+    } @else if (language === 'parrot') { 
+      @for(line of lines; track $index){
+      <p class="line" [class.mt-0]="$first" [class.mb-0]="$last">
       <span>{{ parrotPhrasePrefix }}</span>
-      @for(word of line; track $index){
-      <span class="{{ getParrotColorClass($index) }}">{{ word }}</span>
-      <app-space [show]="!$last" />
-      }
-    </p>
-    } }
+        @for(word of line; track $index){
+        <span class="{{ getParrotColorClass($index) }}">{{ word }}</span>
+        <app-space [show]="!$last" />
+        }
+      </p>
+      } 
+    }
   </div>
 </div>
 }

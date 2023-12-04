@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Signal } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -24,6 +24,12 @@ import { CommonModule } from '@angular/common';
 import { TranslationService } from './translation.service';
 import { LinesComponent } from '../lines/lines.component';
 import { Lines } from '../lines/lines.type';
+import {
+  BreakpointObserver,
+  BreakpointState,
+  Breakpoints,
+} from '@angular/cdk/layout';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 export function textMatchesSelectedLanguage(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -64,6 +70,14 @@ export function textMatchesSelectedLanguage(): ValidatorFn {
 })
 export class TranslationFormComponent {
   protected matchesFromLanguage = TranslationService.matchesFromLanguage;
+
+  protected breakpointState: Signal<BreakpointState | undefined>;
+
+  public constructor(private breakpointObserver: BreakpointObserver) {
+    this.breakpointState = toSignal(
+      this.breakpointObserver.observe([Breakpoints.Handset, Breakpoints.Tablet])
+    );
+  }
 
   private detectedLanguage: FromLanguage | null = null;
   protected showLanguageCouldNotBeDetected = false;
@@ -213,9 +227,14 @@ export class TranslationFormComponent {
       this.outputLines = TranslationService.translate(
         this.translationForm.controls.text.value,
         this.translationForm.controls.toLanguage.value,
-        this.translationForm.controls.isDrunk.value
+        this.translationForm.controls.isDrunk.value,
+        this.isSmallSize()
       );
     }
+  }
+
+  protected isSmallSize(): boolean {
+    return this.breakpointState()?.matches ?? false;
   }
 
   protected isFromLanguage(language: LanguageOption): language is FromLanguage {

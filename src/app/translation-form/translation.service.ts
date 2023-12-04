@@ -16,18 +16,25 @@ export class TranslationService {
   public static translate(
     text: string,
     to: ToLanguage,
-    isDrunk: boolean
+    isDrunk: boolean,
+    isSmallSize: boolean
   ): Lines {
     const result: Lines = [];
     const phrases: string[] = TranslationService.getLines(text);
     for (let i = 0; i < phrases.length; i++) {
       const phrase = phrases[i];
 
-      result.push(
-        TranslationService.replaceWithDrunkWords(
-          TranslationService.replaceWords(phrase, to)
-        )
+      const line: Line = TranslationService.replaceWithDrunkWords(
+        TranslationService.replaceWords(phrase, to)
       );
+
+      if (to === 'parakeet' && isSmallSize && line.length > 10) {
+        for (let i = 0; i < line.length; i += 10) {
+          result.push(line.slice(i, i + 10));
+        }
+      } else {
+        result.push(line);
+      }
 
       if (isDrunk) {
         if (i !== phrases.length - 1) {

@@ -22,8 +22,7 @@
           <p>
             <small id="text-help" class="p-error">Voer een tekst in.</small>
           </p>
-          }
-          @else if(translationForm.controls.text.errors?.['textDoesNotMatchSelectedLanguage']){
+          } @else if(translationForm.controls.text.errors?.['textDoesNotMatchSelectedLanguage']){
           <p>
             <small id="text-help-from-language" class="p-error">
               Input komt niet overeen met geselecteerde taal.
@@ -120,6 +119,7 @@
       <app-lines
         [lines]="outputLines"
         [language]="translationForm.controls.toLanguage.value"
+        [isSmallSize]="isSmallSize()"
       />
     </div>
   </div>
