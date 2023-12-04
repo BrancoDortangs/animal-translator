@@ -19,7 +19,7 @@
       }
     </p>
     } @else if(language === 'parakeet'){
-      @if(isSmallSize){
+      @if(!isSmallSize){
         @for(line of lines; track $index){
           <p class="line" [class.mt-0]="$first" [class.mb-0]="$last">
               @for(word of line; track $index){

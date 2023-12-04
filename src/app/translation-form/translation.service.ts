@@ -28,7 +28,7 @@ export class TranslationService {
         TranslationService.replaceWords(phrase, to)
       );
 
-      if (to === 'parakeet' && isSmallSize && line.length > 10) {
+      if (to === 'parakeet' && !isSmallSize && line.length > 10) {
         for (let i = 0; i < line.length; i += 10) {
           result.push(line.slice(i, i + 10));
         }
